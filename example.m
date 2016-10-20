@@ -56,21 +56,21 @@ lambda = 1;
 
 % objective: minimize reconstruction error of observations
 %   and fit of dynamics for latents (Z = XA)
-objDimRed = @(Ah) norm(X - X*(Ah*Ah'), 'fro');
-objRotDyn = @(Ah,Bh) norm(X2*Ah - X1*Ah*Bh, 'fro');
-curobj = @(Ah,Bh) objDimRed(Ah) + lambda*objRotDyn(Ah,Bh);
+curobj = @(X1,X2,Ah,Bh,Ch) objDimRed(X1,Ah,Ch) + lambda*objRotDyn(X1,X2,Ah,Bh);
 
 [~,~,Ah] = svd(X1, 'econ');
-Ah = Ah(:,1:2); %  initialize with PCA solution
+Ah = Ah(:,1:k); %  initialize with PCA solution
 
-maxiters = 100;
+minA = getMinAFcn('simple'); % 'projGrad', 'stiefel', or 'simple'
+
+maxiters = 50;
 vs = nan(maxiters,3); % objective, and its terms
 angs = nan(maxiters,2); % subspace angle between truth and estimate
 for ii = 1:maxiters
     Bh = minB(X1, X2, Ah);
-    Ch = minC(X1, X2, Bh, Ah);
-    Ah = minA(X1, Ch);
-    vs(ii,:) = [curobj(Ah,Bh) objDimRed(Ah) objRotDyn(Ah, Bh)];
+    Ch = minC(X1, Ah);
+    Ah = minA(X1, X2, Bh, Ch);
+    vs(ii,:) = [curobj(X1,X2,Ah,Bh,Ch) objDimRed(X1,Ah,Ch) objRotDyn(X1,X2,Ah,Bh)];
     angs(ii,:) = [rad2deg(subspace(B,Bh)) rad2deg(subspace(A, Ah))];
 end
 
