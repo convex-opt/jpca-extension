@@ -17,6 +17,7 @@ function Ah = minA_stiefel(X, Y, B, C, lambda)
 %     checkgradient(problem);
 
     % Solve.
+    warning('off', 'manopt:getHessian:approx');
     [Ah, xcost, info, options] = trustregions(problem);
 
     % Display some statistics.
