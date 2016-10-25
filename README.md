@@ -1,15 +1,19 @@
 ## Objective
 
+![image](https://cloud.githubusercontent.com/assets/1677179/19693508/d4bac9f2-9aa9-11e6-806b-76ca4dc124c2.png)
+
 ![image](https://cloud.githubusercontent.com/assets/1677179/19276723/4edc2cae-8fa5-11e6-9ef2-78435a3ad130.png)
 
 Given noisy (high-d) observations, find latent (low-d) space with linear dynamics.
 
-![image](https://cloud.githubusercontent.com/assets/1677179/19276559/c2110754-8fa4-11e6-9483-e96dc54f35a3.png)
+### Approach: Coordinate descent on `A,B,C`:
 
-### Approach 1: Iteratively solve for `A,B,C`:
+First, we introduce a matrix `C` in place of one of the `A`s. Our new objective is now:
 
-* Given `B`, minimize the second term in the objective for `C` via some form of gradient descent.
-* Given `C`, solve for `A` in the first term of the objective via a reduced-rank Procrustes rotation.
-* Set `C = A`. Given `C`, solve for `B` via linear regression.
+![image](https://cloud.githubusercontent.com/assets/1677179/19693601/1fb9561c-9aaa-11e6-81d1-bc24aeca7632.png)
 
-![image](https://cloud.githubusercontent.com/assets/1677179/19276585/dc1d7f1a-8fa4-11e6-9290-aa371ac484d5.png)
+Now, we solve the objective iteratively:
+
+* Given `A` and `C`, minimize the objective in `B` via linear regression.
+* Given `B` and `C`, minimize the objective in `A` via some form of gradient descent.
+* Given `A` and `B`, minimize the objective in `C` via reduced-rank Procrustes rotation.
