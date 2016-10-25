@@ -1,3 +1,8 @@
+%% cd to the dir containing this script
+
+tmp = matlab.desktop.editor.getActive;
+cd(fileparts(tmp.Filename))
+
 %% generate latents and observations
 
 n = 200; % # trials
@@ -69,7 +74,7 @@ angs = nan(maxiters,2); % subspace angle between truth and estimate
 for ii = 1:maxiters
     Bh = minB(X1, X2, Ah);
     Ch = minC(X1, Ah);
-    Ah = minA(X1, X2, Bh, Ch);
+    Ah = minA(X1, X2, Bh, Ch, lambda);
     vs(ii,:) = [curobj(X1,X2,Ah,Bh,Ch) objDimRed(X1,Ah,Ch) objRotDyn(X1,X2,Ah,Bh)];
     angs(ii,:) = [rad2deg(subspace(B,Bh)) rad2deg(subspace(A, Ah))];
 end
@@ -97,3 +102,4 @@ for ii = 1:size(angs,2)
     set(gca, 'YTick', 0:30:90);
     set(gca, 'YTickLabel', arrayfun(@num2str, 0:30:90, 'uni', 0));
 end
+

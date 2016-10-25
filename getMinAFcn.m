@@ -1,7 +1,7 @@
 function fcn = getMinAFcn(method)
     switch method
         case 'stiefel'
-            fcn = @minA_stifel;
+            fcn = @minA_stiefel;
         case 'projGrad'
             fcn = @minA_projGrad;
         otherwise
