@@ -16,6 +16,9 @@ Xd = D.Xd;
 A = D.A;
 B = D.B;
 
+% for saving output of various optimization methods
+vals = struct('vs', [], 'angs', []);
+
 %% plot
 
 figure; set(gcf, 'color', 'w');
@@ -38,19 +41,24 @@ title(['observations (' num2str(p) 'd)']);
 
 %% solve
 
-lambda = 0.1; % higher values weight the dynamics more, relative to dim-red
+methodMinA = 'projGrad'; % 'projGrad', 'stiefel', or 'simple'
+lambda = 1.0; % higher values weight the dynamics more, relative to dim-red
+maxiters = 25;
+
 [~,~,Ah] = svd(X, 'econ');
 Ah = Ah(:,1:k); %  initialize Ah with PCA solution
+minA = getMinAFcn(methodMinA);
 
-minA = getMinAFcn('projGrad'); % 'projGrad', 'stiefel', or 'simple'
-
-maxiters = 25;
 vs = nan(maxiters,3); % objective, and its terms
 angs = nan(maxiters,2); % subspace angle between truth and estimate
 for ii = 1:maxiters
     Bh = minB(X, Xd, Ah); % linear regression
     Ch = minC(X, Ah); % low-rank procrustes
     Ah = minA(X, Xd, Bh, Ch, lambda); % gradient descent
+    if abs(norm(Ah) - 1) > 1e-3
+        % n.b. orthonormalize Ah
+        Ah = nearestOrthonormal(A);
+    end
     
     % keep track of objective values, and angles between A and Ah, B and Bh
     vs(ii,:) = [objFull(X,Xd,Ah,Bh,Ch,lambda) objDimRed(X,Ah,Ch) ...
@@ -58,27 +66,38 @@ for ii = 1:maxiters
     angs(ii,:) = [rad2deg(subspace(B,Bh)) rad2deg(subspace(A, Ah))];
 end
 
-% n.b. final solution for A can either be Ch, or an orthonormalized Ah
-Ah = nearestOrthonormal(A); % Ah = Ch;
+% save vs, angs
+vals.vs.(methodMinA) = vs;
+vals.angs.(methodMinA) = angs;
 
-%% view objective values
+%% compare objective values
 
 nd = size(vs,2) + size(angs,2);
 ncols = floor(sqrt(nd)); nrows = ceil(nd / ncols);
+fnms = fieldnames(vals.vs);
 
 % total objective, reconstruction error, and fit of latent dynamics
 vsNms = {'Full', 'DimRed', 'RotDyn'};
 figure; set(gcf, 'color', 'w');
 for ii = 1:size(vs,2)
-    subplot(nrows, ncols, ii);
-    plot(vs(:,ii));
-    xlabel('iter #'); ylabel([vsNms{ii} ' objective value']); box off;
+    subplot(nrows, ncols, ii); hold on;
+    for jj = 1:numel(fnms)
+        cur_vs = vals.vs.(fnms{jj});
+        plot(log(cur_vs(:,ii)));
+    end
+    xlabel('iter #');
+    ylabel([vsNms{ii} ' objective value']);
+    box off;
 end
 
 % angle between A and Ah, and B and Bh
 angNms = {'?(B, Bh)', '?(A, Ah)'};
 for ii = 1:size(angs,2)
-    subplot(nrows, ncols, ii+size(vs,2));
+    subplot(nrows, ncols, ii+size(vs,2)); hold on;
+    for jj = 1:numel(fnms)
+        cur_angs = vals.angs.(fnms{jj});
+        plot(cur_angs(:,ii));
+    end
     plot(angs(:,ii));    
     xlabel('iter #'); ylabel(angNms{ii});
     box off;
