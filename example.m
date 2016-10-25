@@ -38,27 +38,28 @@ title(['observations (' num2str(p) 'd)']);
 
 %% solve
 
-lambda = 1;
-
-% objective: minimize reconstruction error of observations
-%   and fit of dynamics for latents (Z = XA)
-% curobj = @(X1,X2,Ah,Bh,Ch) objDimRed(X1,Ah,Ch) + lambda*objRotDyn(X1,X2,Ah,Bh);
-
+lambda = 0.1; % higher values weight the dynamics more, relative to dim-red
 [~,~,Ah] = svd(X, 'econ');
-Ah = Ah(:,1:k); %  initialize with PCA solution
+Ah = Ah(:,1:k); %  initialize Ah with PCA solution
 
-minA = getMinAFcn('simple'); % 'projGrad', 'stiefel', or 'simple'
+minA = getMinAFcn('projGrad'); % 'projGrad', 'stiefel', or 'simple'
 
-maxiters = 50;
+maxiters = 25;
 vs = nan(maxiters,3); % objective, and its terms
 angs = nan(maxiters,2); % subspace angle between truth and estimate
 for ii = 1:maxiters
-    Bh = minB(X, Xd, Ah);
-    Ch = minC(X, Ah);
-    Ah = minA(X, Xd, Bh, Ch, lambda);
-    vs(ii,:) = [objFull(X,Xd,Ah,Bh,Ch,lambda) objDimRed(X,Ah,Ch) objRotDyn(X,Xd,Ah,Bh)];
+    Bh = minB(X, Xd, Ah); % linear regression
+    Ch = minC(X, Ah); % low-rank procrustes
+    Ah = minA(X, Xd, Bh, Ch, lambda); % gradient descent
+    
+    % keep track of objective values, and angles between A and Ah, B and Bh
+    vs(ii,:) = [objFull(X,Xd,Ah,Bh,Ch,lambda) objDimRed(X,Ah,Ch) ...
+        objRotDyn(X,Xd,Ah,Bh)];
     angs(ii,:) = [rad2deg(subspace(B,Bh)) rad2deg(subspace(A, Ah))];
 end
+
+% n.b. final solution for A can either be Ch, or an orthonormalized Ah
+Ah = nearestOrthonormal(A); % Ah = Ch;
 
 %% view objective values
 
