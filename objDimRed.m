@@ -1,3 +1,3 @@
 function v = objDimRed(X, A, C)
-    v = norm(X - X*(A*C'), 'fro');
+    v = sum(sum((X - X*A*C').^2));
 end
