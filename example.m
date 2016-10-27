@@ -9,7 +9,7 @@ n = 200; % # trials
 k = 2; % latent dimensionality
 p = 3; % observation dimensionality
 rng(1334); % set rand seed
-D = simulateData(n, k, p); % data struct
+D = simulateData(n, k, p, pi/3, 0.5, 3.5); % data struct
 
 % for saving output of various optimization methods
 output = struct('vs', [], 'angs', [], 'Ah', [], 'Bh', [], 'Ch', []);
@@ -26,7 +26,7 @@ opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
     'lambda', 1.0, 'maxiters', 25, ...
     'nLatentDims', size(D.A,2));
-opts.A = D.A; opts. B = D.B; % for keeping track of objective values
+opts.A = D.A; opts.B = D.B; % for keeping track of objective values
 
 [Ah, Bh, Ch, info] = minABC(D.X, D.Xd, opts);
 
@@ -41,3 +41,15 @@ output.angs.(methodName) = info.angs;
 %% compare objective values
 
 plotObjectiveValues(output.vs, output.angs);
+
+%% run jPCA
+
+Data(1).A = D.X;
+params = struct('numPCs', k, ... % latent dimensionality (should be even)
+    'normalize', false, ... % across time and conditions
+    'softenNorm', 10, ...
+    'meanSubtract', false, ... % only does across-condition mean
+    'suppressBWrosettes', true, ... % don't plot
+    'suppressHistograms', true, ... % don't plot
+    'suppressText', true);
+[Projection, Summary] = jPCA(Data, [], params);

@@ -1,6 +1,6 @@
 function fcn = getMinBFcn(method)
     switch method
-        case 'antisym'
+        case 'antisym' % i.e., in jPCA
             fcn = @minB_antisym;
         case 'sym'
             fcn = @minB_sym;
