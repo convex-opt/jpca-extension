@@ -1,4 +1,4 @@
-function Bh = minB(X, Y, A)
+function Bh = minB_linreg(X, Y, A)
 % find Bh s.t. Bh = | YA - XAB |^2_F
 
     Z = Y*A;

@@ -22,7 +22,7 @@ function plotObjectiveValues(vs, angs)
     end
 
     % angle between A and Ah, and B and Bh
-    angNms = {'angle(B, Bh)', 'angle(A, Ah)'};
+    angNms = {'angle(B, Bh)', 'angle(A, Ah)', 'angle(Ah, Ch)'};
     for ii = 1:nas
         subplot(nrows, ncols, ii+nvs); hold on;
         for jj = 1:numel(fnms)

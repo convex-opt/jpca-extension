@@ -20,14 +20,18 @@ plotLatentsAndObservations(D.Z, D.X);
 
 %% solve
 
-methodName = 'simple'; % 'projGrad', 'stiefel', or 'simple'
-opts = struct('methodName', methodName, 'lambda', 1.0, 'maxiters', 25, ...
+methodName_A = 'simple'; % 'projGrad', 'stiefel', or 'simple'
+methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
+opts = struct('methodName_A', methodName_A, ...
+    'methodName_B', methodName_B, ...
+    'lambda', 1.0, 'maxiters', 25, ...
     'nLatentDims', size(D.A,2));
 opts.A = D.A; opts. B = D.B; % for keeping track of objective values
 
 [Ah, Bh, Ch, info] = minABC(D.X, D.Xd, opts);
 
 % save vs, angs
+methodName = [methodName_A '_' methodName_B];
 output.Ah.(methodName) = Ah;
 output.Bh.(methodName) = Bh;
 output.Ch.(methodName) = Ch;
