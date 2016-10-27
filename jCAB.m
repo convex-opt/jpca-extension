@@ -1,9 +1,12 @@
-function [Ah, Bh, Ch, info] = minABC(X, Xd, opts)
+function [Ah, Bh, Ch, info] = jCAB(X, Xd, opts)
     if nargin < 3
         opts = struct('lambda', 1, 'methodName_A', 'simple', ...
             'methodName_B', 'linreg', ...
             'nLatentDims', 2, 'maxiters', 50);
     end
+
+    % preprocess
+    X = bsxfun(@plus, X, -mean(X)); % X should be zero mean
 
     % choose iterative method for minimizing B, given A
     minB = getMinBFcn(opts.methodName_B);

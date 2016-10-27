@@ -27,12 +27,12 @@ function D = simulateData(n, k, p, th, zNseMult, xNseMult)
     A0 = rand(p,k);
     [A,s,v] = svd(A0, 'econ'); % A is observation matrix
     obs_nse = xNseMult*randn(n,p);
-    X = Z*A' + obs_nse;
-    X = bsxfun(@plus, X, -mean(X)); % mean center
+    X = Z*A' + obs_nse;    
 
     % find X-dot, i.e., time derivative of X
     Xd = diff(X);
-    X = X(1:end-1,:);    
+    X = X(1:end-1,:);
+    X = bsxfun(@plus, X, -mean(X)); % mean center
 
     % save data in struct for portability
     D.X = X;
