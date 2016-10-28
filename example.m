@@ -55,7 +55,7 @@ fits = [fits output];
 params = struct('numPCs', opts.nLatentDims, ... % latent dimensionality
     'normalize', false, ... % across time and conditions
     'softenNorm', 10, ... % ignored if not normalizing
-    'meanSubtract', false, ... % only does across-condition mean
+    'meanSubtract', true, ... % does across-condition mean
     'suppressBWrosettes', true, ... % don't plot
     'suppressHistograms', true, ... % don't plot
     'suppressText', false);

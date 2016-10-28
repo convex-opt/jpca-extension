@@ -5,20 +5,16 @@ function [D, Data] = loadNeuralData(infile, condNums)
     end
     nConds = numel(condNums);
 
-    if nConds == 1
-        X = data.Data(condNums).A;
-        Xd = diff(X);
-        X = X(1:end-1,:);
-    else % combine across conditions
-        nt = size(data.Data(condNums(1)).A,1);
-        X = vertcat(data.Data(condNums).A);
-        bunchOtruth = true(nt-1,1);
-        maskT1 = repmat([bunchOtruth;false], nConds, 1);
-        maskT2 = repmat([false;bunchOtruth], nConds, 1);
-        Xd = X(maskT2,:) - X(maskT1,:);
-        X = X(maskT1,:);
-    end
+    X = vertcat(data.Data(condNums).A);
+    X = bsxfun(@minus, X, mean(X));
 
+    nt = size(data.Data(condNums(1)).A,1);
+    bunchOtruth = true(nt-1,1);
+    maskT1 = repmat([bunchOtruth;false], nConds, 1);
+    maskT2 = repmat([false;bunchOtruth], nConds, 1);
+    Xd = X(maskT2,:) - X(maskT1,:);
+    X = X(maskT1,:);
+%     X = bsxfun(@minus, X, mean(X));
     D.X = X;
     D.Xd = Xd;
     
