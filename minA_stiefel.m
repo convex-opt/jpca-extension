@@ -1,12 +1,19 @@
-function Ah = minA_stiefel(X, Y, B, C, lambda)
+function Ah = minA_stiefel(X, Y, B, C, lambda, doOblique)
 % find orthonormal Ah s.t. Ah = argmin |X - XAC'|_F^2 + ?|YA - XAB|_F^2
 % using stiefel manifold optimization
+    if nargin < 6
+        doOblique = false;
+    end
 
     Ah = C;
     [p,k] = size(Ah);
 
     % Create the problem structure.
-    manifold = stiefelfactory(p,k);
+    if doOblique
+        manifold = obliquefactory(p,k);
+    else
+        manifold = stiefelfactory(p,k);
+    end
     problem.M = manifold;
 
     % Define the problem cost function and its Euclidean gradient.
