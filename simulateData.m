@@ -1,19 +1,28 @@
-function D = simulateData(n, k, p, th, zNseMult, xNseMult)
+function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)    
     if nargin < 4
-        th = pi/3;
-    end
-    if nargin < 5
         zNseMult = 0.1;
     end
-    if nargin < 6
+    if nargin < 5
         xNseMult = 0.4;
+    end
+    if nargin < 6
+        rotOnly = false;
+    end
+    if nargin < 7
+        th = pi/3;
     end
 
     % generate latent dynamics
-    B = [cos(th) -sin(th); sin(th) cos(th)] - eye(k); % B is dynamics matrix
-
-    % confirm that B has stable cycles (src: https://goo.gl/3ghNTx)
-    assert(all([trace(B) < 0; det(B) > 0]));
+    if rotOnly && (k == 2 || k == 4)
+        B = [cos(th) -sin(th); sin(th) cos(th)] - eye(2);
+        if k == 4
+            B = [B zeros(2); zeros(2) B];
+        end
+        % confirm that B has stable cycles (src: https://goo.gl/3ghNTx)
+        assert(all([trace(B) < 0; det(B) > 0]), [trace(B) det(B)]);
+    else
+        assert(false); % don't know how to make these yet without exploding
+    end
 
     nse = zNseMult*randn(n,k);
     Z = nan(n,k);

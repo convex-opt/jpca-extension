@@ -33,13 +33,12 @@ function [Ah, Bh, Ch, info] = jCAB(X, Xd, opts)
         Bh = minB(X, Xd, Ah); % linear regression, e.g.
 
         % keep track of objective values
-        if isfield(opts, 'A')
-            vs(ii,:) = [objFull(X,Xd,Ah,Bh,Ch,opts.lambda) ...
-                objDimRed(X,Ah,Ch) objRotDyn(X,Xd,Ah,Bh)];
-        end
+        vs(ii,:) = [objFull(X,Xd,Ah,Bh,Ch,opts.lambda) ...
+            objDimRed(X,Ah,Ch) objLatDyn(X,Xd,Ah,Bh)];
+
         % keep track of angles between A and Ah, B and Bh
-        if isfield(opts, 'B')
-            angs(ii,:) = [rad2deg(subspace(opts.B,Bh)) ...
+        if isfield(opts, 'A') && isfield(opts, 'B')
+            angs(ii,:) = [rad2deg(subspace(opts.B, Bh)) ...
                 rad2deg(subspace(opts.A, Ah)) ...
                 rad2deg(subspace(Ah, Ch))];
         end
