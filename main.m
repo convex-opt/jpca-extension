@@ -1,9 +1,8 @@
-%% cd to this dir; add paths
+%% cd to this dir, and set up paths
 
 tmp = matlab.desktop.editor.getActive;
-cd(fileparts(tmp.Filename))
-setpaths; % add jPCA paths
-% cd ../manopt; importmanopt; cd ../code;
+cd(fileparts(tmp.Filename));
+setpaths; % add jPCA and manopt paths
 
 %% OPTION 1: load simulated data
 
