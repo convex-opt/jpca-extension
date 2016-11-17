@@ -12,14 +12,13 @@ n = 200; % # trials
 k = 4; % latent dimensionality
 p = 10; % observation dimensionality
 rotOnly = true; % rotations only
-D = simulateData(n, k, p, 0.5, 3.5, rotOnly, pi/3); % data struct
-
-plotLatentsAndObservations(D.Z, D.X);
+D = tools.simulateData(n, k, p, 0.5, 3.5, rotOnly, pi/3); % data struct
+tools.plotLatentsAndObservations(D.Z, D.X);
 
 %% OPTION 2: load neural data (use jPCA to preprocess)
 
-D = load('data/exampleData.mat');
-Data = D.Data; clear D;
+data = load('data/exampleData.mat');
+Data = data.Data; clear data;
 
 params = struct();
 params.numPCs = 6; % latent dimensionality
@@ -40,15 +39,14 @@ D.X = X0(t1,:);
 
 %% solve
 
-methodName_A = 'stiefel'; % 'projGrad', 'stiefel', or 'simple'
+methodName_A = 'simple'; % 'projGrad', 'stiefel', or 'simple'
 methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
-    'lambda', 1.0, 'maxiters', 0, ...
+    'lambda', 1.0, 'maxiters', 10, ...
     'nLatentDims', params.numPCs);
 
-opts.Ah = Ah; opts.Bh = Bh;
-[Ah, Bh, Ch, stats] = jCAB(D.X, D.dX, opts);
+[Ah, Bh, Ch, stats] = jCAB.jCAB(D.X, D.dX, opts);
 
 % save fit
 clear output;
@@ -60,5 +58,6 @@ output.stats = stats;
 
 %% compare objective values
 
-plotObjectiveValues(fits);
-printSummaryStats(fits);
+% e.g., collect fits above: fits = [fits output];
+tools.plotObjectiveValues([output]);
+tools.printSummaryStats([output]);

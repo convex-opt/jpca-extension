@@ -1,4 +1,4 @@
-function stats = summarizeFits(X, dX, Ah, Bh, Ch, opts)
+function stats = fitStats(X, dX, Ah, Bh, Ch, opts)
 
     % rsq for fitting estimated latent dynamics
     Zd = dX*Ah;
@@ -34,9 +34,9 @@ function stats = summarizeFits(X, dX, Ah, Bh, Ch, opts)
     stats.rsq_dynamics = RsqDyn;
     stats.varExplained_dimred = varCaptDimRed;
     stats.varExplained_dimred_dx = varCaptDimRed_dX;
-    stats.objValue_full = objFull(X,dX,Ah,Bh,Ch,opts.lambda);
-    stats.objValue_dimred = objDimRed(X,Ah,Ch);
-    stats.objValue_latdyn = objLatDyn(X,dX,Ah,Bh);
+    stats.objValue_full = jCAB.objFull(X,dX,Ah,Bh,Ch,opts.lambda);
+    stats.objValue_dimred = jCAB.objDimRed(X,Ah,Ch);
+    stats.objValue_latdyn = jCAB.objLatDyn(X,dX,Ah,Bh);
     stats.angles = angs;
 
 end

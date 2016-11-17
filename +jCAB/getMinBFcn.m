@@ -1,10 +1,10 @@
 function fcn = getMinBFcn(method)
     switch method
         case 'antisym' % i.e., in jPCA
-            fcn = @minB_antisym;
+            fcn = @jCAB.minB_antisym;
         case 'sym'
-            fcn = @minB_sym;
+            fcn = @jCAB.minB_sym;
         otherwise
-            fcn = @minB_linreg;
+            fcn = @jCAB.minB_linreg;
     end
 end

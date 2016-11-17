@@ -4,7 +4,7 @@ function Ah = minA_projGrad(X, Y, B, C, lambda)
 
     % placeholder: solve unconstrained problem, then find nearest
     % orthonormal version of that solution
-    Ah = minA_simple(X, Y, B, C, lambda);
-    Ah = nearestOrthonormal(Ah);
+    Ah = jCAB.minA_simple(X, Y, B, C, lambda);
+    Ah = tools.nearestOrthonormal(Ah);
 
 end

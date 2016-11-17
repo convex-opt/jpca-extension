@@ -17,8 +17,8 @@ function Ah = minA_stiefel(X, Y, B, C, lambda, doOblique)
     problem.M = manifold;
 
     % Define the problem cost function and its Euclidean gradient.
-    problem.cost  = @(A) objFull(X, Y, A, B, C, lambda);
-    problem.egrad = @(A) gradA(X, Y, A, B, C, lambda);
+    problem.cost  = @(A) jCAB.objFull(X, Y, A, B, C, lambda);
+    problem.egrad = @(A) jCAB.gradA(X, Y, A, B, C, lambda);
 
     % Numerically check gradient consistency (optional).
 %     checkgradient(problem);
