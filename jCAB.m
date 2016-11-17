@@ -1,9 +1,17 @@
-function [Ah, Bh, Ch, info] = jCAB(X, Xd, opts)
+function [Ah, Bh, Ch, stats] = jCAB(X, dX, opts)
+    % n.b. if maxiters==0, and methodName_B == 'antisym', 
+    %     then we will be solving A and B as in jPCA
     if nargin < 3
-        opts = struct('lambda', 1, 'methodName_A', 'simple', ...
-            'methodName_B', 'linreg', ...
-            'nLatentDims', 2, 'maxiters', 50);
+        opts = struct();
     end
+    defopts = struct('lambda', 1, 'methodName_A', 'simple', ...
+        'methodName_B', 'linreg', ...
+        'enforceOrthonormal_A', true, ...
+        'keepStats', true, ...
+        'Ah', [], 'Bh', [], ...
+        'nLatentDims', 2, 'maxiters', 50);
+    % set field to default value if field is not set
+    opts = setDefaultOptsWhenNecessary(opts, defopts);
 
     % preprocess
     X = bsxfun(@plus, X, -mean(X)); % X should be zero mean
@@ -11,39 +19,45 @@ function [Ah, Bh, Ch, info] = jCAB(X, Xd, opts)
     % choose iterative method for minimizing B, given A
     minB = getMinBFcn(opts.methodName_B);
 
-    % n.b. if maxiters==0, and methodName_B == 'antisym', 
-    %     then we should be solving A and B as in jPCA
-    [~,~,Ah] = svd(X, 'econ');
-    Ah = Ah(:,1:opts.nLatentDims); %  initialize Ah with PCA solution
-    Bh = minB(X, Xd, Ah); % linear regression, e.g.
+    % init Ah, Bh, Ch
+    if ~isempty(opts.Ah)
+        Ah = opts.Ah;
+        assert(size(Ah,2) == opts.nLatentDims);
+    else
+        [~,~,Ah] = svd(X, 'econ');
+        Ah = Ah(:,1:opts.nLatentDims); %  initialize Ah with PCA solution
+    end
+    if ~isempty(opts.Bh)
+        Bh = opts.Bh;
+        assert(size(Bh,1) == opts.nLatentDims);
+        assert(size(Bh,2) == opts.nLatentDims);
+    else
+        Bh = minB(X, dX, Ah); % linear regression, e.g.
+    end
+    Ch = Ah;
 
     % choose iterative method for minimizing A, given B and C
     minA = getMinAFcn(opts.methodName_A);
 
-    vs = nan(opts.maxiters,3); % objective, and its terms
-    angs = nan(opts.maxiters,3); % subspace angle between truth and estimate
+    stats = [];
+    if opts.keepStats
+        stats = [stats summarizeFits(X, dX, Ah, Bh, Ch, opts)];
+    end
+    
     for ii = 1:opts.maxiters
         
         Ch = minC(X, Ah); % low-rank procrustes
-        Ah = minA(X, Xd, Bh, Ch, opts.lambda); % gradient descent
-        if abs(norm(Ah) - 1) > 1e-3
+        Ah = minA(X, dX, Bh, Ch, opts.lambda); % gradient descent
+        if opts.enforceOrthonormal_A && abs(norm(Ah) - 1) > 1e-3
             % n.b. orthonormalize Ah
             Ah = nearestOrthonormal(Ah);
         end
-        Bh = minB(X, Xd, Ah); % linear regression, e.g.
-
-        % keep track of objective values
-        vs(ii,:) = [objFull(X,Xd,Ah,Bh,Ch,opts.lambda) ...
-            objDimRed(X,Ah,Ch) objLatDyn(X,Xd,Ah,Bh)];
-
-        % keep track of angles between A and Ah, B and Bh
-        if isfield(opts, 'A') && isfield(opts, 'B')
-            angs(ii,:) = [rad2deg(subspace(opts.B, Bh)) ...
-                rad2deg(subspace(opts.A, Ah)) ...
-                rad2deg(subspace(Ah, Ch))];
+        Bh = minB(X, dX, Ah); % linear regression, e.g.
+        
+        % keep track of objective values and variance explained
+        if opts.keepStats
+            stats = [stats summarizeFits(X, dX, Ah, Bh, Ch, opts)];
         end
     end
-    info.vs = vs;
-    info.angs = angs;
 
 end

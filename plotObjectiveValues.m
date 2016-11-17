@@ -1,12 +1,12 @@
 function plotObjectiveValues(fits)
 
     nms = {fits.name}; % fit names
-    vs = {fits.objValues}; % obj values for each iteration
-    vsNms = {'Full', 'DimRed', 'RotDyn'};
+    vs = {fits.stats}; % obj values for each iteration
+    vsNms = {'objValue_full', 'objValue_dimred', 'objValue_latdyn'};
     
     % set size of plot
     nnms = numel(nms);
-    nd = size(vs{1},2);
+    nd = numel(vsNms);
     nrows = floor(sqrt(nd)); ncols = ceil(nd / nrows);
 
     % total objective, reconstruction error, and fit of latent dynamics
@@ -14,8 +14,8 @@ function plotObjectiveValues(fits)
     for ii = 1:nd
         subplot(nrows, ncols, ii); hold on;
         for jj = 1:numel(nnms)
-            vscur = vs{jj};
-            plot(vscur(:,ii));
+            vscur = [vs{jj}.(vsNms{ii})];
+            plot(vscur);
         end
         xlabel('iter #');
         ylabel([vsNms{ii} ' objective value']);

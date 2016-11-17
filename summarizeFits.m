@@ -1,7 +1,7 @@
-function stats = summarizeFits(X, Xd, Ah, Bh, Ch, opts)
+function stats = summarizeFits(X, dX, Ah, Bh, Ch, opts)
 
     % rsq for fitting estimated latent dynamics
-    Zd = Xd*Ah;
+    Zd = dX*Ah;
     Zrot = X*Ah*Bh;
     varZd = sum(Zd(:).^2);  % original Xd data variance
     fitErr = Zd - Zrot;
@@ -11,14 +11,32 @@ function stats = summarizeFits(X, Xd, Ah, Bh, Ch, opts)
     % pct. of variance explained by dim reduction
     varObs = sum(var(X));
     varCaptDimRed = sum(var(X*Ah))/varObs;
-    varCaptDimRedRot = sum(var(X*Ah*Bh))/varObs;
+    varObsdX = sum(var(dX));
+    varCaptDimRed_dX = sum(var(dX*Ah))/varObsdX;
+    
+%     fitErrorM_2D = fitErr*jPCs(:,1:2); % err projected into primary plane
+%     dState_2D = dX*jPCS(:,1:2); % project dX into primary plane
+%     varErr_2D = sum(fitErrorM_2D(:).^2);
+%     vardX_2D = sum(dState_2D(:).^2); % and get its variance
+%     % how much is explained by the overall fit via M
+%     RsqDyn_2d = (vardX_2D - varErr_2D)/vardX_2D;
+
+    % keep track of angles between A and Ah, B and Bh
+    if isfield(opts, 'A') && isfield(opts, 'B')
+        angs = [rad2deg(subspace(opts.B, Bh)) ...
+            rad2deg(subspace(opts.A, Ah)) ...
+            rad2deg(subspace(Ah, Ch))];
+    else
+        angs = [];
+    end
 
     % add results to struct
     stats.rsq_dynamics = RsqDyn;
     stats.varExplained_dimred = varCaptDimRed;
-    stats.varExplained_dimredrot = varCaptDimRedRot;
-    stats.objValue_full = objFull(X,Xd,Ah,Bh,Ch,opts.lambda);
+    stats.varExplained_dimred_dx = varCaptDimRed_dX;
+    stats.objValue_full = objFull(X,dX,Ah,Bh,Ch,opts.lambda);
     stats.objValue_dimred = objDimRed(X,Ah,Ch);
-    stats.objValue_latdyn = objLatDyn(X,Xd,Ah,Bh);
+    stats.objValue_latdyn = objLatDyn(X,dX,Ah,Bh);
+    stats.angles = angs;
 
 end

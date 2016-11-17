@@ -4,6 +4,6 @@ function Bh = minB_antisym(X, Y, A)
     % want to enforce Bh has rotational dynamics only,
     %    i.e., Bh is antisymmetric
     % use jPCA's skewSymRegress:
-    Bh = skewSymRegress(Y*A, X*A);
+    Bh = jPCA.skewSymRegress(Y*A, X*A);
     
 end

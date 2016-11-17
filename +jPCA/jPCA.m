@@ -178,6 +178,7 @@ end
 smallA = bigA(analyzeMask,:);
 [PCvectors,rawScores] = princomp(smallA,'econ');  % apply PCA to the analyzed times
 meanFReachNeuron = mean(smallA);  % this will be kept for use by future attempts to project onto the PCs
+% A ~= rawScores*PCvectors' (assuming columns of A have zero mean)
 
 % these are the directions in the high-D space (the PCs themselves)
 if numPCs > size(PCvectors,2)
@@ -358,6 +359,8 @@ Summary.smallA = smallA; % added by JAH
 Summary.preState = preState; % added by JAH
 Summary.dState = dState; % added by JAH
 Summary.Ared = Ared; % added by JAH
+Summary.maskT1 = maskT1; % added by JAH
+Summary.maskT2 = maskT2; % added by JAH
 
 Summary.jPCs = jPCs;
 Summary.PCs = PCvectors;
