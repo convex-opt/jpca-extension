@@ -1,4 +1,4 @@
-function [Ah, Bh, Ch, stats] = jCAB(X, dX, opts)
+function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
     % n.b. if maxiters==0, and methodName_B == 'antisym', 
     %     then we will be solving A and B as in jPCA
     if nargin < 3
@@ -9,7 +9,7 @@ function [Ah, Bh, Ch, stats] = jCAB(X, dX, opts)
         'enforceOrthonormal_A', true, ...
         'keepStats', true, ...
         'Ah', [], 'Bh', [], ...
-        'nLatentDims', 2, 'maxiters', 50);
+        'nLatentDims', 2, 'maxiters', 50, 'tol', 1e-6);
     % set field to default value if field is not set
     opts = tools.setDefaultOptsWhenNecessary(opts, defopts);
 
@@ -43,8 +43,11 @@ function [Ah, Bh, Ch, stats] = jCAB(X, dX, opts)
     if opts.keepStats
         stats = [stats tools.fitStats(X, dX, Ah, Bh, Ch, opts)];
     end
-    
+    As = {}; Bs = {}; Cs = {};
+    As = [As Ah]; Bs = [Bs Bh]; Cs = [Cs Ch];
+    deltas = [];
     for ii = 1:opts.maxiters
+        disp(['iter #' num2str(ii)]);
         
         Ch = jCAB.minC(X, Ah); % low-rank procrustes
         Ah = minA(X, dX, Bh, Ch, opts.lambda); % gradient descent
@@ -56,8 +59,25 @@ function [Ah, Bh, Ch, stats] = jCAB(X, dX, opts)
         
         % keep track of objective values and variance explained
         if opts.keepStats
-            stats = [stats tools.fitStats(X, dX, Ah, Bh, Ch, opts)];
+            curstats = tools.fitStats(X, dX, Ah, Bh, Ch, opts);            
+            stats = [stats curstats];
+            disp(curstats);
+        end
+        As = [As Ah]; Bs = [Bs Bh]; Cs = [Cs Ch];
+        [dA, dB, dC] = deltaIterate(As, Bs, Cs, ii);
+        disp(num2str([dA dB dC]));
+        deltas = [deltas; [dA dB dC]];
+        if all([dA dB dC] < opts.tol)
+            disp(['Converged after ' num2str(ii) ' iterations']);
+            break;
         end
     end
+    iters.Ah = As; iters.Bh = Bs; iters.Ch = Cs; iters.deltas = deltas;
 
+end
+
+function [dA, dB, dC] = deltaIterate(Ahs, Bhs, Chs, ii)
+    dA = norm(Ahs{ii+1} - Ahs{ii}, 'fro');
+    dB = norm(Bhs{ii+1} - Bhs{ii}, 'fro');
+    dC = norm(Chs{ii+1} - Chs{ii}, 'fro');
 end

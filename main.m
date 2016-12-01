@@ -1,7 +1,7 @@
 %% cd to this dir, and set up paths
 
-tmp = matlab.desktop.editor.getActive;
-cd(fileparts(tmp.Filename));
+% tmp = matlab.desktop.editor.getActive;
+% cd(fileparts(tmp.Filename));
 setpaths; % add jPCA and manopt paths
 
 %% OPTION 1: load simulated data
@@ -12,7 +12,7 @@ k = 4; % latent dimensionality
 p = 10; % observation dimensionality
 rotOnly = true; % rotations only
 D = tools.simulateData(n, k, p, 0.5, 3.5, rotOnly, pi/3); % data struct
-tools.plotLatentsAndObservations(D.Z, D.X);
+% tools.plotLatentsAndObservations(D.Z, D.X);
 
 %% OPTION 2: load neural data (use jPCA to preprocess)
 
@@ -38,14 +38,15 @@ D.X = X0(t1,:);
 
 %% solve
 
-methodName_A = 'simple'; % 'projGrad', 'stiefel', or 'simple'
+methodName_A = 'stiefel'; % 'projGrad', 'stiefel', 'oblique', or 'simple'
 methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
-    'lambda', 1.0, 'maxiters', 10, ...
-    'nLatentDims', params.numPCs);
+    'lambda', 1.0, 'maxiters', 100, ...
+    'nLatentDims', params.numPCs, ...
+    'tol', 1e-4);
 
-[Ah, Bh, Ch, stats] = jCAB.jCAB(D.X, D.dX, opts);
+[Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);
 
 % save fit
 clear output;

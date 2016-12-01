@@ -2,7 +2,9 @@ function plotObjectiveValues(fits)
 
     nms = {fits.name}; % fit names
     vs = {fits.stats}; % obj values for each iteration
-    vsNms = {'objValue_full', 'objValue_dimred', 'objValue_latdyn'};
+    vsNms = {'objValue_full', 'objValue_dimred', 'objValue_latdyn', ...
+        'rsq_dynamics'};
+    vsNms = fieldnames(fits.stats);
     
     % set size of plot
     nnms = numel(nms);

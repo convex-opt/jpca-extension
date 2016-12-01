@@ -39,13 +39,13 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
     X = Z*A' + obs_nse;    
 
     % find X-dot, i.e., time derivative of X
-    Xd = diff(X);
+    dX = diff(X);
     X = X(1:end-1,:);
     X = bsxfun(@plus, X, -mean(X)); % mean center
 
     % save data in struct for portability
     D.X = X;
-    D.Xd = Xd; % X-dot
+    D.dX = dX; % X-dot
     D.Z = Z;
     D.A = A;
     D.B = B;
