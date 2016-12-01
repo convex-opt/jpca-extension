@@ -24,6 +24,7 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
         assert(false); % don't know how to make these yet without exploding
     end
 
+    %% training data
     nse = zNseMult*randn(n,k);
     Z = nan(n,k);
     Z(1,:) = randn(1,k); % random starting point
@@ -43,10 +44,31 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
     X = X(1:end-1,:);
     X = bsxfun(@plus, X, -mean(X)); % mean center
 
-    % save data in struct for portability
+    %% test data
+    nse = zNseMult*randn(n,k);
+    Ztest = nan(n,k);
+    Ztest(1,:) = randn(1,k); % random starting point
+    for ii = 2:n
+        Ztest(ii,:) = (B + eye(k))*Ztest(ii-1,:)' + nse(ii,:)';
+    end
+    Ztest = bsxfun(@plus, Ztest, -mean(Ztest)); % mean center
+
+    % generate observations
+    obs_nse = xNseMult*randn(n,p);
+    Xtest = Ztest*A' + obs_nse;    
+
+    % find Xtest-dot, i.e., time derivative of Xtest
+    dXtest = diff(Xtest);
+    Xtest = Xtest(1:end-1,:);
+    Xtest = bsxfun(@plus, Xtest, -mean(Xtest)); % mean center
+    
+    %% save data in struct for portability
     D.X = X;
     D.dX = dX; % X-dot
     D.Z = Z;
+    D.Xtest = Xtest;
+    D.dXtest = dXtest;
+    D.Ztest = Ztest;
     D.A = A;
     D.B = B;
     D.n = n;
