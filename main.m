@@ -38,26 +38,37 @@ D.X = X0(t1,:);
 
 %% solve
 
+outputs = [];
+
 methodName_A = 'stiefel'; % 'projGrad', 'stiefel', 'oblique', or 'simple'
 methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
-    'lambda', 1.0, 'maxiters', 100, ...
+    'lambda', 1.0, 'maxiters', 5, ...
     'nLatentDims', params.numPCs, ...
     'tol', 1e-4);
 
-[Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);
+for lmb = [0.001 0.01 0.1 1 2 5 10 20]
+    opts.lambda = lmb;
+    [Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);    
 
-% save fit
-clear output;
-output.name = [methodName_A '_' methodName_B];
-output.Ah = Ah;
-output.Bh = Bh;
-output.Ch = Ch;
-output.stats = stats;
+    % save fit
+    clear output;
+    output.name = [methodName_A '_' methodName_B];
+    output.Ah = Ah;
+    output.Bh = Bh;
+    output.Ch = Ch;
+    output.opts = opts;
+    output.stats = stats;
+    
+    % print and add summary
+    output.summary = tools.printSummaryStats(output);
+    
+    outputs = [outputs; output];
+end
 
 %% compare objective values
 
 % e.g., collect fits above: fits = [fits output];
 tools.plotObjectiveValues([output]);
-tools.printSummaryStats([output]);
+

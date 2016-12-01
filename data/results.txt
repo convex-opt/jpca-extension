@@ -1,0 +1,41 @@
+lambda=1
+
+    # iters: 16
+
+    dynamics:
+        jPCA: 52.02%
+        jCAB: 53.56%
+        improvement: 1.54%
+
+    dim-reduction:
+        jPCA: 46.61%
+        jCAB: 46.41%
+        improvement: -0.20%
+
+lambda=10
+
+    # iters: 15
+
+    dynamics:
+        jPCA: 52.02%
+        jCAB: 61.11%
+        improvement: 9.09%
+
+    dim-reduction:
+        jPCA: 46.61%
+        jCAB: 44.36%
+        improvement: -2.25%
+
+lambda=100
+
+    # iters: 27
+
+    dynamics:
+        jPCA: 52.02%
+        jCAB: 76.09%
+        improvement: 24.07%
+
+    dim-reduction:
+        jPCA: 46.61%
+        jCAB: 35.47%
+        improvement: -11.14%

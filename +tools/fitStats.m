@@ -7,6 +7,7 @@ function stats = fitStats(X, dX, Ah, Bh, Ch, opts)
     fitErr = Zd - Zrot;
     varErr = sum(fitErr(:).^2);    
     RsqDyn = (varZd - varErr)/varZd; % var explained by fit
+%     RsqDyn = sum(var(Zrot))/sum(var(Zd)); % same as above
 
     % pct. of variance explained by dim reduction
     varObs = sum(var(X));
@@ -37,6 +38,7 @@ function stats = fitStats(X, dX, Ah, Bh, Ch, opts)
     stats.objValue_full = jCAB.objFull(X,dX,Ah,Bh,Ch,opts.lambda);
     stats.objValue_dimred = jCAB.objDimRed(X,Ah,Ch);
     stats.objValue_latdyn = jCAB.objLatDyn(X,dX,Ah,Bh);
+    stats.objValue_sum = stats.objValue_dimred + stats.objValue_latdyn;
     stats.angles = angs;
 
 end
