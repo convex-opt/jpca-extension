@@ -52,17 +52,22 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
             disp(['iter #' num2str(ii)]);
         end
         
+        Ah0 = Ah; Bh0 = Bh; Ch0 = Ch;
+        Bh = minB(X, dX, Ah); % linear regression, e.g.
         Ch = jCAB.minC(X, Ah); % low-rank procrustes
-        Ah = minA(X, dX, Bh, Ch, opts.lambda); % gradient descent
+        Ah = minA(X, dX, Ah, Bh, Ch, opts.lambda); % gradient descent
         if opts.enforceOrthonormal_A && abs(norm(Ah) - 1) > 1e-3
             % n.b. orthonormalize Ah
+            warning('ortho');
             Ah = tools.nearestOrthonormal(Ah);
-        end
-        Bh = minB(X, dX, Ah); % linear regression, e.g.
+        end        
         
         % keep track of objective values and variance explained
         if opts.keepStats
-            curstats = tools.fitStats(X, dX, Ah, Bh, Ch, opts);            
+            curstats = tools.fitStats(X, dX, Ah, Bh, Ch, opts);
+            if ii > 1 && curstats.objValue_full > stats(end).objValue_full+ (1e-3)
+                warning(['not descending on iter #' num2str(ii)]);
+            end
             stats = [stats curstats];
             if opts.verbosity > 1
                 disp(curstats);

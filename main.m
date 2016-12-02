@@ -11,7 +11,7 @@ n = 200; % # trials
 k = 4; % latent dimensionality
 p = 10; % observation dimensionality
 rotOnly = true; % rotations only
-D = tools.simulateData(n, k, p, 0.5, 3.5, rotOnly, pi/3); % data struct
+D = tools.simulateData(n, k, p, 0.5, 10, rotOnly, pi/3); % data struct
 % tools.plotLatentsAndObservations(D.Z, D.X);
 
 %% OPTION 2: load neural data (use jPCA to preprocess)
@@ -44,15 +44,15 @@ methodName_A = 'stiefel'; % 'projGrad', 'stiefel', 'oblique', or 'simple'
 methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
-    'lambda', 1.0, 'maxiters', 100, ...
+    'lambda', 1.0, 'maxiters', 500, ...
     'nLatentDims', params.numPCs, ...
     'verbosity', 0, ...
     'tol', 1e-4);
 
-lms = [0.001 0.01 0.1 1 2 5 10 20];
-for lmb = lms
-    opts.lambda = lmb;
-    [Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);    
+lms = [0.001 0.01 0.1 1 2 5];
+for lm = lms
+    opts.lambda = lm;
+    [Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);
 
     % save fit
     clear output;
@@ -71,12 +71,20 @@ end
 
 %% compare objective values
 
-% tools.plotObjectiveValues(output);
+tools.plotObjectiveValues(output);
+
+sm = [outputs.summary];
+lm = lms(1:size(sm,2));
 
 plot.init;
 subplot(1,2,1); hold on;
-plot(lms, sm(1,:));
-plot(lms, sm(2,:));
+plot(lm, sm(1,:));
+plot(lm, sm(2,:));
+xlabel('\lambda');
+ylabel('r^2 dynamics');
+
 subplot(1,2,2); hold on;
-plot(lms, sm(3,:));
-plot(lms, sm(4,:));
+plot(lm, sm(3,:));
+plot(lm, sm(4,:));
+xlabel('\lambda');
+ylabel('r^2 dim red');

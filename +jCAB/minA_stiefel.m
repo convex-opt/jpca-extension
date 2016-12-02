@@ -1,12 +1,10 @@
-function Ah = minA_stiefel(X, Y, B, C, lambda, doOblique)
+function Ah = minA_stiefel(X, Y, A0, B, C, lambda, doOblique)
 % find orthonormal Ah s.t. Ah = argmin |X - XAC'|_F^2 + ?|YA - XAB|_F^2
 % using stiefel manifold optimization
-    if nargin < 6
+    if nargin < 7
         doOblique = false;
     end
-
-    Ah = C;
-    [p,k] = size(Ah);
+    [p,k] = size(A0); % initial guess
 
     % Create the problem structure.
     if doOblique
@@ -26,7 +24,7 @@ function Ah = minA_stiefel(X, Y, B, C, lambda, doOblique)
     % Solve.
     warning('off', 'manopt:getHessian:approx');
     options = struct('verbosity', 0); % totally silent
-    [Ah, xcost, info, options] = trustregions(problem, [], options);
+    [Ah, xcost, info, options] = trustregions(problem, A0, options);
 
     % Display some statistics.
 %     figure;

@@ -13,6 +13,7 @@ function summary = printSummaryStats(output)
     
     disp('------------------------');
     disp(['lambda = ' num2str(output.opts.lambda)]);
+    disp(['# iters = ' num2str(numel(output.stats))]);
     disp(['dynamics: ' num2str(j1)]);
     disp(['dimred: ' num2str(j2)]);
     disp(['improvement: ' num2str(imp)]);
@@ -20,7 +21,7 @@ function summary = printSummaryStats(output)
     disp(['objValDimRed = ' num2str(j3(2))]);
     disp(['objValLatDyn = ' num2str(j3(3))]);
     disp(['objValWeighted = ' num2str(j3(1))]);
-    disp(['objValSum = ' num2str(j3(4))]);
+    disp(['objValSum = ' num2str(j3(4))]);    
     disp('------------------------');
     
     summary = [j1 j2 imp rt j3]';
