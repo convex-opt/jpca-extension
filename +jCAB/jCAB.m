@@ -58,7 +58,6 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
         Ah = minA(X, dX, Ah, Bh, Ch, opts.lambda); % gradient descent
         if opts.enforceOrthonormal_A && abs(norm(Ah) - 1) > 1e-3
             % n.b. orthonormalize Ah
-            warning('ortho');
             Ah = tools.nearestOrthonormal(Ah);
         end        
         
@@ -74,12 +73,13 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
             end
         end
         As = [As Ah]; Bs = [Bs Bh]; Cs = [Cs Ch];
-        [dA, dB, dC] = deltaIterate(As, Bs, Cs, ii);
+        [dA, dB, dC, dD] = deltaIterate(As, Bs, Cs, ii);
         if opts.verbosity > 1
             disp(num2str([dA dB dC]));
         end
-        deltas = [deltas; [dA dB dC]];
-        if all([dA dB dC] < opts.tol)
+        deltas = [deltas; [dA dB dC dD]];
+%         if all([dA dB dC] < opts.tol)
+        if abs(stats(end).objValue_full - stats(end-1).objValue_full) < opts.tol
             if opts.verbosity > 0
                 disp(['Converged after ' num2str(ii) ' iterations']);
             end
@@ -90,8 +90,9 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
 
 end
 
-function [dA, dB, dC] = deltaIterate(Ahs, Bhs, Chs, ii)
+function [dA, dB, dC, dD] = deltaIterate(Ahs, Bhs, Chs, ii)
     dA = norm(Ahs{ii+1} - Ahs{ii}, 'fro');
     dB = norm(Bhs{ii+1} - Bhs{ii}, 'fro');
     dC = norm(Chs{ii+1} - Chs{ii}, 'fro');
+    dD = norm(Ahs{ii+1} - Chs{ii+1}, 'fro');
 end

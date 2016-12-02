@@ -1,10 +1,10 @@
 function stats = fitStats(X, dX, Ah, Bh, Ch, opts)
 
     % rsq for fitting estimated latent dynamics
-    Zd = dX*Ah;
+    dZ = dX*Ah;
     Zrot = X*Ah*Bh;
-    varZd = sum(Zd(:).^2);  % original Xd data variance
-    fitErr = Zd - Zrot;
+    varZd = sum(dZ(:).^2);  % original Xd data variance
+    fitErr = dZ - Zrot;
     varErr = sum(fitErr(:).^2);    
     RsqDyn = (varZd - varErr)/varZd; % var explained by fit
 %     RsqDyn = sum(var(Zrot))/sum(var(Zd)); % same as above

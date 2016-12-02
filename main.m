@@ -33,8 +33,15 @@ params.suppressText = false;
 X0 = Summary.smallA;
 t1 = Summary.maskT1;
 t2 = Summary.maskT2;
+clear D;
 D.dX = X0(t2,:) - X0(t1,:);
 D.X = X0(t1,:);
+
+D.k = params.numPCs;
+
+p = 100;
+D.X = D.X(:,1:p);
+D.dX = D.dX(:,1:p);
 
 %% solve
 
@@ -45,11 +52,12 @@ methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
     'lambda', 1.0, 'maxiters', 500, ...
-    'nLatentDims', params.numPCs, ...
+    'nLatentDims', D.k, ...
     'verbosity', 0, ...
-    'tol', 1e-4);
+    'tol', 1e-3);
 
 lms = [0.001 0.01 0.1 1 2 5];
+% lms = 0;
 for lm = lms
     opts.lambda = lm;
     [Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);
@@ -71,7 +79,7 @@ end
 
 %% compare objective values
 
-tools.plotObjectiveValues(output);
+tools.plotObjectiveValues(outputs);
 
 sm = [outputs.summary];
 lm = lms(1:size(sm,2));

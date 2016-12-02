@@ -2,7 +2,8 @@ function summary = printSummaryStats(output)
     ratf = @(a) a(1)/a(2);
 
     % this function can print out a comparison of fits.stats
-    jp = output.stats(1); jc = output.stats(end);
+    jp = output.stats(1);
+    jc = output.stats(end);
     
     j1 = 100*[jp.rsq_dynamics jc.rsq_dynamics];
     j2 = 100*[jp.varExplained_dimred jc.varExplained_dimred];

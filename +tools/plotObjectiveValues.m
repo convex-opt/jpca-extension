@@ -1,13 +1,12 @@
 function plotObjectiveValues(fits)
 
+%     nfs = numel(fits);
     nms = {fits.name}; % fit names
     vs = {fits.stats}; % obj values for each iteration
-    vsNms = {'objValue_full', 'objValue_dimred', 'objValue_latdyn', ...
-        'rsq_dynamics'};
-    vsNms = fieldnames(fits.stats);
+    vsNms = fieldnames(fits(1).stats);
     
     % set size of plot
-    nnms = numel(nms);
+    nfs = numel(nms);
     nd = numel(vsNms);
     nrows = floor(sqrt(nd)); ncols = ceil(nd / nrows);
 
@@ -15,7 +14,7 @@ function plotObjectiveValues(fits)
     figure; set(gcf, 'color', 'w');
     for ii = 1:nd
         subplot(nrows, ncols, ii); hold on;
-        for jj = 1:numel(nnms)
+        for jj = 1:nfs
             vscur = [vs{jj}.(vsNms{ii})];
             plot(vscur);
         end
