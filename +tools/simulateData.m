@@ -36,6 +36,7 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
     % generate observations
     A0 = rand(p,k);
     [A,s,v] = svd(A0, 'econ'); % A is observation matrix
+%     A = A0;
     obs_nse = xNseMult*randn(n,p);
     X = Z*A' + obs_nse;    
 

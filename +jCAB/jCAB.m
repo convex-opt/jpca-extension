@@ -58,13 +58,18 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
         Ah = minA(X, dX, Ah, Bh, Ch, opts.lambda); % gradient descent
         if opts.enforceOrthonormal_A && abs(norm(Ah) - 1) > 1e-3
             % n.b. orthonormalize Ah
+            didOrtho = true;
             Ah = tools.nearestOrthonormal(Ah);
+        else
+            didOrtho = false;
         end        
         
         % keep track of objective values and variance explained
         if opts.keepStats
             curstats = tools.fitStats(X, dX, Ah, Bh, Ch, opts);
-            if ii > 1 && curstats.objValue_full > stats(end).objValue_full+ (1e-3)
+            % only guaranteed to descend if we didn't orthonormalize
+            if ii > 1 && ~didOrtho && ...
+                    curstats.objValue_full > stats(end).objValue_full+ 1
                 warning(['not descending on iter #' num2str(ii)]);
             end
             stats = [stats curstats];
