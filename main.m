@@ -44,11 +44,13 @@ methodName_A = 'stiefel'; % 'projGrad', 'stiefel', 'oblique', or 'simple'
 methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
-    'lambda', 1.0, 'maxiters', 5, ...
+    'lambda', 1.0, 'maxiters', 100, ...
     'nLatentDims', params.numPCs, ...
+    'verbosity', 0, ...
     'tol', 1e-4);
 
-for lmb = [0.001 0.01 0.1 1 2 5 10 20]
+lms = [0.001 0.01 0.1 1 2 5 10 20];
+for lmb = lms
     opts.lambda = lmb;
     [Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);    
 
@@ -69,6 +71,12 @@ end
 
 %% compare objective values
 
-% e.g., collect fits above: fits = [fits output];
-tools.plotObjectiveValues([output]);
+% tools.plotObjectiveValues(output);
 
+plot.init;
+subplot(1,2,1); hold on;
+plot(lms, sm(1,:));
+plot(lms, sm(2,:));
+subplot(1,2,2); hold on;
+plot(lms, sm(3,:));
+plot(lms, sm(4,:));

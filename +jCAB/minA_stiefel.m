@@ -25,7 +25,8 @@ function Ah = minA_stiefel(X, Y, B, C, lambda, doOblique)
 
     % Solve.
     warning('off', 'manopt:getHessian:approx');
-    [Ah, xcost, info, options] = trustregions(problem);
+    options = struct('verbosity', 0); % totally silent
+    [Ah, xcost, info, options] = trustregions(problem, [], options);
 
     % Display some statistics.
 %     figure;

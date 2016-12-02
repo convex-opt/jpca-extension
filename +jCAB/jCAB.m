@@ -9,6 +9,7 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
         'enforceOrthonormal_A', true, ...
         'keepStats', true, ...
         'Ah', [], 'Bh', [], ...
+        'verbosity', 0, ...
         'nLatentDims', 2, 'maxiters', 50, 'tol', 1e-6);
     % set field to default value if field is not set
     opts = tools.setDefaultOptsWhenNecessary(opts, defopts);
@@ -47,7 +48,9 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
     As = [As Ah]; Bs = [Bs Bh]; Cs = [Cs Ch];
     deltas = [];
     for ii = 1:opts.maxiters
-        disp(['iter #' num2str(ii)]);
+        if opts.verbosity > 0
+            disp(['iter #' num2str(ii)]);
+        end
         
         Ch = jCAB.minC(X, Ah); % low-rank procrustes
         Ah = minA(X, dX, Bh, Ch, opts.lambda); % gradient descent
@@ -61,14 +64,20 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
         if opts.keepStats
             curstats = tools.fitStats(X, dX, Ah, Bh, Ch, opts);            
             stats = [stats curstats];
-            disp(curstats);
+            if opts.verbosity > 1
+                disp(curstats);
+            end
         end
         As = [As Ah]; Bs = [Bs Bh]; Cs = [Cs Ch];
         [dA, dB, dC] = deltaIterate(As, Bs, Cs, ii);
-        disp(num2str([dA dB dC]));
+        if opts.verbosity > 1
+            disp(num2str([dA dB dC]));
+        end
         deltas = [deltas; [dA dB dC]];
         if all([dA dB dC] < opts.tol)
-            disp(['Converged after ' num2str(ii) ' iterations']);
+            if opts.verbosity > 0
+                disp(['Converged after ' num2str(ii) ' iterations']);
+            end
             break;
         end
     end
