@@ -24,44 +24,39 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
         assert(false); % don't know how to make these yet without exploding
     end
 
-    %% training data
-    nse = zNseMult*randn(n,k);
-    Z = nan(n,k);
+    %% training/testing data
+    N = 2*n; % first n for training, last n for testing
+    
+    nse = zNseMult*randn(N,k);
+    Z = nan(N,k);
     Z(1,:) = randn(1,k); % random starting point
-    for ii = 2:n
+    for ii = 2:N
         Z(ii,:) = (B + eye(k))*Z(ii-1,:)' + nse(ii,:)';
     end
     Z = bsxfun(@plus, Z, -mean(Z)); % mean center
 
     % generate observations
-    A0 = rand(p,k);
-    [A,s,v] = svd(A0, 'econ'); % A is observation matrix
-%     A = A0;
-    obs_nse = xNseMult*randn(n,p);
-    X = Z*A' + obs_nse;    
+    % OPTION #1: noise everywhere
+    [A,~,~] = svd(rand(p,k), 'econ'); % A is observation matrix
+    obs_nse = xNseMult*randn(N,p);    
+    X = Z*A' + obs_nse;
+    % OPTION #2: noise orthogonal to random projection
+%     goal_snr = 0.5;
+%     [X,A,~] = tools.latentObsWithOrthNoise(Z, p, goal_snr);
 
     % find X-dot, i.e., time derivative of X
     dX = diff(X);
     X = X(1:end-1,:);
     X = bsxfun(@plus, X, -mean(X)); % mean center
-
-    %% test data
-    nse = zNseMult*randn(n,k);
-    Ztest = nan(n,k);
-    Ztest(1,:) = randn(1,k); % random starting point
-    for ii = 2:n
-        Ztest(ii,:) = (B + eye(k))*Ztest(ii-1,:)' + nse(ii,:)';
-    end
-    Ztest = bsxfun(@plus, Ztest, -mean(Ztest)); % mean center
-
-    % generate observations
-    obs_nse = xNseMult*randn(n,p);
-    Xtest = Ztest*A' + obs_nse;    
-
-    % find Xtest-dot, i.e., time derivative of Xtest
-    dXtest = diff(Xtest);
-    Xtest = Xtest(1:end-1,:);
-    Xtest = bsxfun(@plus, Xtest, -mean(Xtest)); % mean center
+    
+    % split into train/test
+    isTestInd = true(N,1); isTestInd(1:n) = false;
+    Xtest = X(isTestInd,:);
+    dXtest = dX(isTestInd,:);
+    Ztest = Z(isTestInd,:);
+    X = X(~isTestInd,:);
+    dX = dX(~isTestInd,:);
+    Z = Z(~isTestInd,:);
     
     %% save data in struct for portability
     D.X = X;

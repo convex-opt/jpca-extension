@@ -9,6 +9,10 @@ function stats = fitStats(X, dX, Ah, Bh, Ch, opts)
     RsqDyn = (varZd - varErr)/varZd; % var explained by fit
 %     RsqDyn = sum(var(Zrot))/sum(var(Zd)); % same as above
 
+    % rsq for fitting high-d dynamics of observed data
+    dXhat = X*(Ah*Bh*Ah');
+    RsqDyn2 = sum(dXhat(:).^2)/sum(dX(:).^2);
+
     % pct. of variance explained by dim reduction
     varObs = sum(var(X));
     varCaptDimRed = sum(var(X*Ah))/varObs;
@@ -33,6 +37,7 @@ function stats = fitStats(X, dX, Ah, Bh, Ch, opts)
 
     % add results to struct
     stats.rsq_dynamics = RsqDyn;
+    stats.rsq_dynamics_raw = RsqDyn2;
     stats.varExplained_dimred = varCaptDimRed;
     stats.varExplained_dimred_dx = varCaptDimRed_dX;
     stats.objValue_full = jCAB.objFull(X,dX,Ah,Bh,Ch,opts.lambda);
