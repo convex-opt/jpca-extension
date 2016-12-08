@@ -50,7 +50,7 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
     X = bsxfun(@plus, X, -mean(X)); % mean center
     
     % split into train/test
-    isTestInd = true(N,1); isTestInd(1:n) = false;
+    isTestInd = true(N-1,1); isTestInd(1:n) = false;
     Xtest = X(isTestInd,:);
     dXtest = dX(isTestInd,:);
     Ztest = Z(isTestInd,:);
