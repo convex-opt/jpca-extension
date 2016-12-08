@@ -39,9 +39,13 @@ D.X = X0(t1,:);
 
 D.k = params.numPCs;
 
-p = 100;
-D.X = D.X(:,1:p);
-D.dX = D.dX(:,1:p);
+trainInds = 1:2:size(D.X,2);
+testInds = 2:2:size(D.X,2);
+X = D.X; dX = D.dX;
+D.X = X(:,trainInds);
+D.dX = dX(:,trainInds);
+D.Xtest = X(:,testInds);
+D.dXtest = dX(:,testInds);
 
 %% solve
 
@@ -59,6 +63,7 @@ opts = struct('methodName_A', methodName_A, ...
 
 lms = [0.001 0.01 0.1 1 2 5];
 % lms = 0;
+lms = 1;
 for lm = lms
     opts.lambda = lm;
     [Ah, Bh, Ch, iters, stats] = jCAB.jCAB(D.X, D.dX, opts);
