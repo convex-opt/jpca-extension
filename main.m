@@ -8,10 +8,10 @@ setpaths; % add jPCA and manopt paths
 
 rng(1334); % set rand seed
 n = 200; % # trials
-k = 4; % latent dimensionality
-p = 10; % observation dimensionality
+k = 2; % latent dimensionality
+p = 3; % observation dimensionality
 rotOnly = true; % rotations only
-D = tools.simulateData(n, k, p, 0.5, 10, rotOnly, pi/3); % data struct
+D = tools.simulateData(n, k, p, 0.5, 10, 0.5, rotOnly, pi/3); % data struct
 % tools.plotLatentsAndObservations(D.Z, D.X);
 
 %% OPTION 2: load neural data (use jPCA to preprocess)
@@ -52,13 +52,13 @@ D.dXtest = dX(:,testInds);
 outputs = [];
 
 methodName_A = 'stiefel'; % 'projGrad', 'stiefel', 'oblique', or 'simple'
-methodName_B = 'sym'; % 'sym', 'antisym', or 'linreg'
+methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
     'lambda', 1.0, 'maxiters', 500, ...
     'nLatentDims', D.k, ...
     'verbosity', 0, ...
-    'enforceOrthonormal_A', false, ...
+    'enforceOrthonormal_A', true, ...
     'tol', 1e-3);
 
 lms = [0.001 0.01 0.1 1 2 5];
@@ -77,9 +77,12 @@ for lm = lms
     output.opts = opts;
     output.stats = stats;
     
-    % print and add summary
+    % print and add summary    
+    output.test_stats(1) = tools.fitStats(D.Xtest, D.dXtest, ...
+        iters.Ah{1}, iters.Bh{1}, iters.Ch{1}, opts);
+    output.test_stats(2) = tools.fitStats(D.Xtest, D.dXtest, ...
+        Ah, Bh, Ch, opts);
     output.summary = tools.printSummaryStats(output);
-    
     outputs = [outputs; output];
 end
 

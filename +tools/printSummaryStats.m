@@ -22,7 +22,11 @@ function summary = printSummaryStats(output)
     disp(['objValDimRed = ' num2str(j3(2))]);
     disp(['objValLatDyn = ' num2str(j3(3))]);
     disp(['objValWeighted = ' num2str(j3(1))]);
-    disp(['objValSum = ' num2str(j3(4))]);    
+    disp(['objValSum = ' num2str(j3(4))]);
+    if isfield(output, 'test_stats')
+        disp('jpca on test set:'); disp(output.test_stats(1));
+        disp('jcab on test set:'); disp(output.test_stats(2));
+    end
     disp('------------------------');
     
     summary = [j1 j2 imp rt j3]';

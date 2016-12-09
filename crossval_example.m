@@ -7,7 +7,7 @@ n = 200; % # trials
 k = 4; % latent dimensionality
 p = 10; % observation dimensionality
 rotOnly = true; % rotations only
-D = tools.simulateData(n, k, p, 0.5, 3.5, rotOnly, pi/3); % data struct
+D = tools.simulateData(n, k, p, 0.5, 3.5, 0.5, rotOnly, pi/3); % data struct
 
 
 %% solve
@@ -18,7 +18,7 @@ methodName_A = 'stiefel'; % 'projGrad', 'stiefel', 'oblique', or 'simple'
 methodName_B = 'linreg'; % 'sym', 'antisym', or 'linreg'
 opts = struct('methodName_A', methodName_A, ...
     'methodName_B', methodName_B, ...
-    'lambda', 1.0, 'maxiters', 5, ...
+    'lambda', 1.0, 'maxiters', 100, ...
     'nLatentDims', k, ...
     'tol', 1e-4);
 

@@ -1,4 +1,4 @@
-function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)    
+function D = simulateData(n, k, p, zNseMult, xNseMult, goalSnr, rotOnly, th)    
     if nargin < 4
         zNseMult = 0.1;
     end
@@ -6,9 +6,12 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
         xNseMult = 0.4;
     end
     if nargin < 6
-        rotOnly = false;
+        goalSnr = 0.5;
     end
     if nargin < 7
+        rotOnly = false;
+    end
+    if nargin < 8
         th = pi/3;
     end
 
@@ -35,14 +38,16 @@ function D = simulateData(n, k, p, zNseMult, xNseMult, rotOnly, th)
     end
     Z = bsxfun(@plus, Z, -mean(Z)); % mean center
 
-    % generate observations
-    % OPTION #1: noise everywhere
-    [A,~,~] = svd(rand(p,k), 'econ'); % A is observation matrix
-    obs_nse = xNseMult*randn(N,p);    
-    X = Z*A' + obs_nse;
-    % OPTION #2: noise orthogonal to random projection
-%     goal_snr = 0.5;
-%     [X,A,~] = tools.latentObsWithOrthNoise(Z, p, goal_snr);
+    % generate observations    
+    if ~isnan(goalSnr)
+        % OPTION #1: add noise orthogonal to random projection
+        [X,A,~] = tools.latentObsWithOrthNoise(Z, p, goalSnr);
+    else
+        [A,~,~] = svd(rand(p,k), 'econ'); % A is observation matrix
+        X = Z*A';
+    end
+    obs_nse = xNseMult*randn(N,p);
+    X = X + obs_nse;
 
     % find X-dot, i.e., time derivative of X
     dX = diff(X);
