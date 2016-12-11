@@ -24,12 +24,12 @@ params.numPCs = 4; % latent dimensionality
 params.normalize = true; % across time and conditions
 params.softenNorm = true; % ignored if not normalizing
 params.meanSubtract = true; % does across-condition mean
-params.suppressBWrosettes = true; % don't plot
+params.suppressBWrosettes = false; % don't plot
 params.suppressHistograms = true; % don't plot
 params.suppressText = false;
 times = -50:10:150;
 
-trainInds = false(numel(Data),1) trainInds(1:80) = true;
+trainInds = false(numel(Data),1); trainInds(1:80) = true;
 [Projection, Summary] = jPCA.jPCA(Data(trainInds), times, params);
 X0 = Summary.smallA;
 t1 = Summary.maskT1;
@@ -115,10 +115,19 @@ tools.plotObjectiveValues(outputs);
 % must also have neurInds
 % Ah = outputs(1).Ah; % jCAB
 Ah = iters.Ah{1}; % jPCA
+Bh = iters.Bh{1}; % jPCA
+Bh = Summary.Mskew; % jPCA
+
+Ared = Summary.Ared;
+numAnalyzedTimes = size(Ared,1)/numel(Projection);
+Bh = jPCA.getjPCsFromMskew(Bh, Ared, numAnalyzedTimes);
+% Bh = eye(size(Ah,2));
+Bh = Summary.jPCs;
+
 Proj = [];
 for ii = 1:numel(Projection)
     X = Projection(ii).smallA(:,neurInds);
-    Proj(ii).proj = bsxfun(@minus, X, mean(D.X))*Ah;
+    Proj(ii).proj = bsxfun(@minus, X, mean(D.X))*(Ah*Bh);
     Proj(ii).times = times';
     
     % copy over just to match original form
@@ -132,6 +141,6 @@ Summ.varCaptEachPC = D.k:-1:1; % just something in reverse order
 Summ.varCaptEachPlane = 1:(D.k/2); % must be even
 Summ.crossCondMean = [];
 prms = struct();
-prms.planes2plot = 1:2;
+prms.planes2plot = 1;
 prms.substRawPCs = true;
 [colorStruct, haxP, vaxP] = jPCA.phaseSpace(Proj, Summ, prms);
