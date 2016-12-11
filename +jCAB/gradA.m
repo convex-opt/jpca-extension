@@ -1,6 +1,7 @@
 function v = gradA(X, Y, A, B, C, lambda)
 % gradient w.r.t. A of |X - XAC'|_F^2 + ?|YA - XAB|_F^2
-    v = gradObj1A(X,A,C) + lambda*gradObj2A(X,Y,A,B);
+    v = lambda*gradObj1A(X,A,C) + gradObj2A(X,Y,A,B);
+%     v = gradObj1A(X,A,C) + lambda*gradObj2A(X,Y,A,B);
 end
 
 function v = gradObj1A(X, A, C)

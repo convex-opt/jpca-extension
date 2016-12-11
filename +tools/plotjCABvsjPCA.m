@@ -1,19 +1,24 @@
-function plotjCABvsjPCA(outputs, lmb_vals, valFlds, dspNms, statsFldNm)
-    if nargin < 3
+function plotjCABvsjPCA(outputs, valFlds, dspNms, statsFldNm)
+    if nargin < 2
         valFlds = {'varExplained_dimred', 'rsq_dynamics'};
     end
-    if nargin < 4
+    if nargin < 3
         dspNms = valFlds;
     end
-    if nargin < 5
+    if nargin < 4
         statsFldNm = 'stats';
     end
         
     hold on;
     set(gca, 'FontSize', 16);
     sz = 25;
+    
+    xs = cellfun(@(d) d.lambda, {outputs.opts});
+    [~,ix] = sort(xs);
+    xs = xs(ix);
+    outputs = outputs(ix);
 
-    xs = lmb_vals;
+%     xs = lmb_vals;
 
     sts = outputs(1).(statsFldNm);
     vs1 = cell(numel(valFlds),1);
@@ -37,7 +42,7 @@ function plotjCABvsjPCA(outputs, lmb_vals, valFlds, dspNms, statsFldNm)
     xlabel('\lambda');
 %     ylabel('% variance explained');
     set(gca, 'XScale', 'log');
-    xlim([min(lmb_vals) max(lmb_vals)]);
+    xlim([min(xs) max(xs)]);
 %     ylim([0 100]);
     legend(legNms, 'Location', 'BestOutside');
 %     legend({'dim red (jPCA)', 'dim red (jCAB)', ...
