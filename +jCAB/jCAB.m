@@ -15,8 +15,10 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
     opts = tools.setDefaultOptsWhenNecessary(opts, defopts);
 
     % preprocess
-    X = bsxfun(@plus, X, -mean(X)); % X should be zero mean
+    X = bsxfun(@minus, X, mean(X)); % X should be zero mean
 
+    % choose iterative method for minimizing A, given B and C
+    minA = jCAB.getMinAFcn(opts.methodName_A);
     % choose iterative method for minimizing B, given A
     minB = jCAB.getMinBFcn(opts.methodName_B);
 
@@ -25,7 +27,8 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
         Ah = opts.Ah;
         assert(size(Ah,2) == opts.nLatentDims);
     else
-        [~,~,Ah] = svd(X, 'econ');
+%         [~,~,Ah] = svd(X, 'econ');
+        [Ah,~] = princomp(X, 'econ');
         Ah = Ah(:,1:opts.nLatentDims); %  initialize Ah with PCA solution
     end
     if ~isempty(opts.Bh)
@@ -35,10 +38,7 @@ function [Ah, Bh, Ch, iters, stats] = jCAB(X, dX, opts)
     else
         Bh = minB(X, dX, Ah); % linear regression, e.g.
     end
-    Ch = Ah;
-
-    % choose iterative method for minimizing A, given B and C
-    minA = jCAB.getMinAFcn(opts.methodName_A);
+    Ch = Ah;    
 
     stats = [];
     if opts.keepStats

@@ -16,46 +16,15 @@ D = tools.simulateData(n, k, p, 0.5, 10, 0.5, rotOnly, pi/3); % data struct
 
 %% OPTION 2: load neural data (use jPCA to preprocess)
 
-data = load('data/exampleData.mat');
-Data = data.Data; clear data;
-
-params = struct();
-params.numPCs = 4; % latent dimensionality
-params.normalize = true; % across time and conditions
-params.softenNorm = true; % ignored if not normalizing
-params.meanSubtract = true; % does across-condition mean
-params.suppressBWrosettes = false; % don't plot
-params.suppressHistograms = true; % don't plot
-params.suppressText = false;
+params = struct('numPCs', 4);
 times = -50:10:150;
-
-trainInds = false(numel(Data),1); trainInds(1:80) = true;
-[Projection, Summary] = jPCA.jPCA(Data(trainInds), times, params);
-X0 = Summary.smallA;
-t1 = Summary.maskT1;
-t2 = Summary.maskT2;
-clear D;
-D.dX = X0(t2,:) - X0(t1,:);
-D.X = X0(t1,:);
-D.k = params.numPCs;
-
-[Projection2, Summary2] = jPCA.jPCA(Data(~trainInds), times, params);
-X0 = Summary2.smallA;
-t1 = Summary2.maskT1;
-t2 = Summary2.maskT2;
-D.dXtest = X0(t2,:) - X0(t1,:);
-D.Xtest = X0(t1,:);
-
-neurInds = 1:2:size(D.X,2);
-% neurInds = 1:150;
-D.X = D.X(:,neurInds);
-D.dX = D.dX(:,neurInds);
-D.Xtest = D.Xtest(:,neurInds);
-D.dXtest = D.dXtest(:,neurInds);
+neurInds = 1:2:218; % just use every other neuron, for memory's sake
+trainPct = 80;
+[D, TrainSet, TestSet] = tools.loadAndInitNeuralData(params, ...
+    times, neurInds, trainPct);
 
 %% solve
 
-D.k = 4;
 outputs = [];
 
 methodName_A = 'stiefel'; % 'projGrad', 'stiefel', 'oblique', or 'simple'
@@ -68,7 +37,8 @@ opts = struct('methodName_A', methodName_A, ...
     'enforceOrthonormal_A', true, ...
     'tol', 1e-3);
 
-lmb_vals = [0.0001 0.001 0.01];
+lmb_vals = [0.0005 0.001 0.005];
+% lmb_vals = 0.001;
 
 for lm = lmb_vals
     opts.lambda = lm;
@@ -93,54 +63,77 @@ for lm = lmb_vals
         
 end
 
-figure; set(gcf, 'color', 'w'); title(['snr: ' num2str(goal_snr)]);
+figure; set(gcf, 'color', 'w');
 nrows = 1; ncols = 2;
 flds = {'varExplained_dimred', 'rsq_dynamics'};
 dspNms = {'dimred', 'latdyn'};
-subplot(nrows,ncols,1); hold on;
+subplot(nrows, ncols, 1); hold on;
 tools.plotjCABvsjPCA(outputs, flds, dspNms);
 ylim([0 100]);
-subplot(nrows,ncols,2); hold on;
+subplot(nrows, ncols, 2); hold on;
 tools.plotjCABvsjPCA(outputs, flds, dspNms, 'test_stats');
 ylim([0 100]);
-
 tools.setPrintSize(gcf, 10, 6, 0);
 
-%% compare objective values
-
-tools.plotObjectiveValues(outputs);
+% tools.plotObjectiveValues(outputs);
 
 %% plot in jPCA style
 
-% must also have neurInds
-% Ah = outputs(1).Ah; % jCAB
-Ah = iters.Ah{1}; % jPCA
-Bh = iters.Bh{1}; % jPCA
-Bh = Summary.Mskew; % jPCA
+CurSet = TrainSet; % TestSet
+Projection = CurSet.Projection;
+Summary = CurSet.Summary;
+
+Ah = outputs(1).Ah; % jCAB
+Bh = outputs(1).Bh; % jCAB
+
+% Ah = iters.Ah{1}; % jPCA
+% Bh = iters.Bh{1}; % jPCA
+
+% Ah = Summary.PCs;
+% Bh = Summary.Mskew; % jPCA
+% Bh = Summary.Mbest; % jPCA
 
 Ared = Summary.Ared;
 numAnalyzedTimes = size(Ared,1)/numel(Projection);
 Bh = jPCA.getjPCsFromMskew(Bh, Ared, numAnalyzedTimes);
-% Bh = eye(size(Ah,2));
-Bh = Summary.jPCs;
 
 Proj = [];
 for ii = 1:numel(Projection)
-    X = Projection(ii).smallA(:,neurInds);
-    Proj(ii).proj = bsxfun(@minus, X, mean(D.X))*(Ah*Bh);
-    Proj(ii).times = times';
     
-    % copy over just to match original form
-    Proj(ii).projAllTimes = Proj(ii).proj;
-    Proj(ii).allTimes = Proj(ii).times;
-    Proj(ii).tradPCAproj = Proj(ii).proj;
-    Proj(ii).tradPCAprojAllTimes = Proj(ii).proj;    
+    X = Projection(ii).smallA;
+    X = bsxfun(@minus, X, mean(D.X));
+    Proj(ii).tradPCAproj = X*Ah;
+    Proj(ii).proj = Proj(ii).tradPCAproj*Bh;
+    Proj(ii).times = Projection(ii).times;
+    
+    X = Projection(ii).bigA;
+    X = bsxfun(@minus, X, mean(D.X));
+    Proj(ii).tradPCAprojAllTimes = X*Ah;
+    Proj(ii).projAllTimes = Proj(ii).tradPCAprojAllTimes*Bh;
+    Proj(ii).allTimes = Projection(ii).allTimes;
+
 end
 
 Summ.varCaptEachPC = D.k:-1:1; % just something in reverse order
 Summ.varCaptEachPlane = 1:(D.k/2); % must be even
 Summ.crossCondMean = [];
+
 prms = struct();
 prms.planes2plot = 1;
-prms.substRawPCs = true;
+prms.substRawPCs = false;
+prms.times = Proj(1).times; % e.g., -50:10:150
+
 [colorStruct, haxP, vaxP] = jPCA.phaseSpace(Proj, Summ, prms);
+
+%%
+
+clear Outputs;
+for ii = 1:numel(iters.Ah)
+    Outputs(ii).Ah = iters.Ah{ii};
+    Outputs(ii).Bh = iters.Bh{ii};
+end
+
+% jPCA.phaseMovie(Proj, Summ);
+% tools.rotationMovie2(Proj, Summ, V, Proj(1).times, 70, 70);
+tools.rotationMovie2(D, Projection, Summary, outputs, ...
+    Projection(1).times)

@@ -2,7 +2,16 @@ clear; clc; close all;
 
 %% OPTION 1: load simulated data
 
-snrs = [nan 5 2 1 1/2 1/5 1/10];
+% snrs = [nan 5 2 1 1/2 1/5 1/10];
+
+zNses = [2 2 2];
+% zNses = [0.5 2 5];
+% xNses = [1 5 10];
+xNses = [8 8 8];
+% snrs = 0.7*ones(size(xNses));
+snrs = [0.3 0.5 0.7 0.9];
+snrs = [0.9];
+
 all_outputs = cell(numel(snrs),1);
 for kk = 1:numel(snrs)
     rng(1334); % set rand seed
@@ -11,7 +20,9 @@ for kk = 1:numel(snrs)
     p = 10; % observation dimensionality
     rotOnly = true; % rotations only
     goal_snr = snrs(kk);
-    D = tools.simulateData(n, k, p, 1.0, 5.0, goal_snr, rotOnly, pi/3); % data struct
+    zNse = zNses(kk);
+    xNse = xNses(kk);
+    D = tools.simulateData(n, k, p, zNse, xNse, goal_snr, rotOnly, pi/3); % data struct
 
     % solve
 
@@ -26,7 +37,8 @@ for kk = 1:numel(snrs)
         'tol', 1e-4);
 
     % lmb_vals = [1e-10 0.001 0.003 0.01 0.03 0.1 0.3 1 3 10 30];
-    lmb_vals = [0.01 0.1 1 10 20 50 500];
+%     lmb_vals = [0.01 0.1 1 10 20 50];
+    lmb_vals = [0.1 1];
     for i_lmb = 1:length(lmb_vals)
         lmb = lmb_vals(i_lmb);
         opts.lambda = lmb;
@@ -71,52 +83,23 @@ for kk = 1:numel(snrs)
     dspNms = {'dimred', 'latdyn'};
     figure; set(gcf, 'color', 'w'); title(['snr: ' num2str(goal_snr)]);
     subplot(2,2,1); hold on;
-    tools.plotjCABvsjPCA(outputs, lmb_vals, flds, dspNms);
+    tools.plotjCABvsjPCA(outputs, flds, dspNms);
     subplot(2,2,2); hold on;
-    tools.plotjCABvsjPCA(outputs, lmb_vals, flds, dspNms, 'test_stats');
+    tools.plotjCABvsjPCA(outputs, flds, dspNms, 'test_stats');
     flds = {'varExplained_dimred', 'rsq_dynamics'};
     dspNms = {'dimred', 'latdyn'};
     subplot(2,2,3); hold on;
-    tools.plotjCABvsjPCA(outputs, lmb_vals, flds, dspNms);
+    tools.plotjCABvsjPCA(outputs, flds, dspNms);
     ylim([0 100]);
     subplot(2,2,4); hold on;
-    tools.plotjCABvsjPCA(outputs, lmb_vals, flds, dspNms, 'test_stats');
+    tools.plotjCABvsjPCA(outputs, flds, dspNms, 'test_stats');
     ylim([0 100]);
 
     tools.setPrintSize(gcf, 10, 6, 0);
     fignm = ['plots/snr_' num2str(goal_snr)];
-    export_fig(gcf, fignm, '-pdf');
+%     export_fig(gcf, fignm, '-pdf');
     all_outputs{kk} = outputs;
 end
-
-%% compare objective values
-
-[~,idx]=min(testObj_unweighted);
-norm_lmb = lmb_vals(idx)
-[~,idx] = min(testObj_unweighted_norm);
-unnorm_lmb = lmb_vals(idx)
-
-figure; hold on;
-semilogy(lmb_vals,trainObj_weighted)
-semilogy(lmb_vals,testObj_weighted)
-legend('train','test')
-title('weighted')
-xlabel('lambda'), ylabel('X + \lambda W')
-
-figure; hold on;
-semilogy(lmb_vals,trainObj_unweighted)
-semilogy(lmb_vals,testObj_unweighted)
-legend('train','test')
-title('unweighted')
-xlabel('lambda'), ylabel('X + W')
-
-figure; hold on;
-semilogy(lmb_vals,testObj_unweighted)
-semilogy(lmb_vals,testObj_unweighted_norm)
-legend('un-normalized','normalized')
-title('unweighted')
-xlabel('lambda'), ylabel('X + W')
-
 
 %%
 

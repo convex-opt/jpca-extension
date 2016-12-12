@@ -279,6 +279,7 @@ for c = 1:numConds
     index2b = index2 + numTimes -1;  % we will go from index2 to this point
     
     Projection(c).smallA = smallA(index1:index1b,:); % added by JAH
+    Projection(c).bigA = bigA(index2:index2b,:); % added by JAH
     Projection(c).proj = proj(index1:index1b,:);
     Projection(c).times = Data(1).times(analyzeIndices);
     Projection(c).projAllTimes = projAllTimes(index2:index2b,:);
